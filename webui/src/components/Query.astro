@@ -16,6 +16,8 @@ import CodeEditor from "./CodeEditor.astro"
 </div>
 
 <script>
+    let MAX_QUERY_SIZE = 1240 * 1000; // a bit less than 1MB
+
     let button = $("#run-query");
     button.on("click", function() {
         button.prop("disabled", true);
@@ -30,6 +32,12 @@ import CodeEditor from "./CodeEditor.astro"
         const query = window.getEditorContent();
 
         if (query) {
+            if (query.length > MAX_QUERY_SIZE) {
+                alert(`Query too large. Please try to split it into smaller parts. You need to remove at least ${query.length - MAX_QUERY_SIZE} characters.`);
+                button.prop("disabled", false);
+                return;
+            }
+
             $.ajax({
                 url: `${import.meta.env.BASE_URL}/api/run-query`,
                 type: 'POST',
@@ -42,8 +50,8 @@ import CodeEditor from "./CodeEditor.astro"
                     
                     display(data)
                 },
-                error: function() {
-                    alert("Could not connect to server.");
+                error: function(e) {
+                    alert(`Error connecting to the server: ${e.status} ${e.statusText}`);
                     
                     button.prop("disabled", false);
                 }
