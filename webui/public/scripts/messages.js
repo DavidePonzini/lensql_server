@@ -159,11 +159,14 @@ class Chat {
             let ul = $('<ul style="list-style-type: none; padding-left: 0"></ul>');
             this.html.append(ul);
             for (let i = 0; i < this.notices.length; i++) {
-                let notice = $('<li class="query-notice"></li>');
-                let italic = $('<i></i>')
-                italic.text(this.notices[i]);
-                notice.append(italic);
-                ul.append(notice);
+                let notices = $('<li class="query-notice"></li>');
+                for (let notice of this.notices[i].split('\n')) {
+                    let italic = $('<i></i>')
+                    italic.text(notice);
+                    notices.append(italic);
+                    notices.append('<br/>');
+                }
+                ul.append(notices);
             }
 
             this.html.append($('<hr></hr>'));
