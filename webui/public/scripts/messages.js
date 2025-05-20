@@ -120,13 +120,14 @@ class Message {
 }
 
 class Chat {
-    constructor(query, query_id, content) {
+    constructor(query, query_id, content, notices) {
         CHAT_ID += 1;
         this.id = CHAT_ID;
         this.query = query;
         this.query_id = query_id;
         this.content = content;
         this.messages = [];
+        this.notices = notices;
 
         this.html = $('<div></div>')
             .addClass('chat')
@@ -152,6 +153,21 @@ class Chat {
         let title = $('<div></div>').addClass('chat-title');
         this.html.append(title);
         this.html.append($('<hr></hr>'));
+
+        // Quick fix: added notices here
+        if (this.notices && this.notices.length > 0) {
+            let ul = $('<ul style="list-style-type: none; padding-left: 0"></ul>');
+            this.html.append(ul);
+            for (let i = 0; i < this.notices.length; i++) {
+                let notice = $('<li class="query-notice"></li>');
+                let italic = $('<i></i>')
+                italic.text(this.notices[i]);
+                notice.append(italic);
+                ul.append(notice);
+            }
+
+            this.html.append($('<hr></hr>'));
+        }
 
         return title;
     }
@@ -224,8 +240,8 @@ class Chat {
 }
 
 class UserChat extends Chat {
-    constructor(query, query_id, content) {
-        super(query, query_id, content);
+    constructor(query, query_id, content, notices) {
+        super(query, query_id, content, notices);
 
         this.thiking_message = null;
     }
@@ -292,8 +308,8 @@ class UserChat extends Chat {
 }
 
 class ErrorChat extends UserChat {
-    constructor(query, query_id, content) {
-        super(query, query_id, content);
+    constructor(query, query_id, content, notices) {
+        super(query, query_id, content, notices);
 
         this.html.addClass('alert-danger');
     }
@@ -413,8 +429,8 @@ class ErrorChat extends UserChat {
 }
 
 class ResultChat extends UserChat {
-    constructor(query, query_id, content) {
-        super(query, query_id, content);
+    constructor(query, query_id, content, notices) {
+        super(query, query_id, content, notices);
 
         this.html.addClass('alert-primary');
     }

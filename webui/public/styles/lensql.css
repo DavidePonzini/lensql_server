@@ -6,6 +6,18 @@ html {
     --icon-margin: 10px;
 }
 
+.query-notice {
+    position: relative;
+    padding-left: 1rem;
+}
+
+.query-notice::before {
+    content: ">";
+    position: absolute;
+    left: 0;
+}
+
+
 table {
     display: block;
     min-height: 50px;

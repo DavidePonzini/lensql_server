@@ -13,14 +13,15 @@ function display(json_data) {
         let query       = item['query'];
         let query_id    = item['id'];
         let item_data   = item['data'];
+        let notices     = item['notices'];
 
         let chat;
         if (builtin) {
-            chat = new BuiltinChat(query, query_id, item_data);
+            chat = new BuiltinChat(query, query_id, item_data, notices);
         } else if (success) {
-            chat = new ResultChat(query, query_id, item_data);
+            chat = new ResultChat(query, query_id, item_data, notices);
         } else {
-            chat = new ErrorChat(query, query_id, item_data);
+            chat = new ErrorChat(query, query_id, item_data, notices);
         }
 
         TMP_CHATS.push(chat);

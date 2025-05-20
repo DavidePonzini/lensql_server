@@ -57,6 +57,24 @@ class DBConnection:
     @property
     def time_since_last_operation(self) -> datetime.timedelta:
         return datetime.datetime.now() - self.last_operation_ts
+
+    @property
+    def notices(self) -> list:
+        '''Returns the notices from the connection.'''
+        try:
+            return self.connection.notices
+        except AttributeError:
+            # Handle the case where notices are not available
+            return []
+        
+    def clear_notices(self):
+        '''Clears the notices from the connection.'''
+        try:
+            self.connection.notices = []
+        except AttributeError:
+            # Handle the case where notices are not available
+            pass
+
         
 
 connections: dict[str, DBConnection] = {}
@@ -96,7 +114,9 @@ def get_connection(username: str) -> DBConnection:
 
     with conn_lock:
         if username in connections:
-            return connections[username]
+            conn = connections[username]
+            conn.clear_notices()
+            return conn
         raise Exception(f'User {username} does not have a connection to the database.')
     
 def create_connection(username: str, password: str, autocommit: bool = True) -> connection | None:
@@ -141,20 +161,20 @@ def execute_queries(username: str, query_str: str) -> list[QueryResult]:
                 if cur.description:  # Check if the query has a result set
                     rows = cur.fetchall()
                     columns = [desc[0] for desc in cur.description]
-                    result.append(QueryResultDataset(pd.DataFrame(rows, columns=columns), statement.query))
+                    result.append(QueryResultDataset(pd.DataFrame(rows, columns=columns), statement.query, conn.notices))
                     continue
                 
                 # No result set, return the number of affected rows
                 if cur.rowcount >= 0:
-                    result.append(QueryResultMessage(f'{statement.first_token} {cur.rowcount}', statement.query))
+                    result.append(QueryResultMessage(f'{statement.first_token} {cur.rowcount}', statement.query, conn.notices))
                     continue
 
                 # No number of affected rows, return the first token of the statement
-                result.append(QueryResultMessage(f'{statement.first_token}', statement.query))
+                result.append(QueryResultMessage(f'{statement.first_token}', statement.query, conn.notices))
 
             conn.update_last_operation_ts()
         except Exception as e:
-            result.append(QueryResultError(SQLException(e), statement.query))
+            result.append(QueryResultError(SQLException(e), statement.query, conn.notices))
             conn.rollback()
             conn.update_last_operation_ts()
 
@@ -173,11 +193,11 @@ def run_builtin_query(username: str, query: Queries) -> QueryResult:
 
 
         conn.update_last_operation_ts()
-        return QueryResultDataset(result, query.name)
+        return QueryResultDataset(result, query.name, conn.notices)
     except Exception as e:
         conn.rollback()
         conn.update_last_operation_ts()
-        return QueryResultError(SQLException(e), query.name)
+        return QueryResultError(SQLException(e), query.name, conn.notices)
 
 def list_schemas(username: str) -> QueryResult:
     '''Lists all schemas in the database.'''

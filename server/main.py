@@ -29,6 +29,7 @@ def response_query(*results: QueryResult, is_builtin: bool = False) -> str:
             'type': query.type,
             'data': query.result,
             'id': query.id,
+            'notices': query.notices,
         }
         for query in results
     ])
